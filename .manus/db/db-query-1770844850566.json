@@ -1,0 +1,28 @@
+{
+  "query": "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user gSkzMn65zUCxfSM.root --database CFLVKr7K9aW49hRf7iDxPE --execute SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();",
+  "rows": [
+    {
+      "TABLE_NAME": "__drizzle_migrations"
+    },
+    {
+      "TABLE_NAME": "caregiver_profiles"
+    },
+    {
+      "TABLE_NAME": "family_jobs"
+    },
+    {
+      "TABLE_NAME": "reports"
+    },
+    {
+      "TABLE_NAME": "reviews"
+    },
+    {
+      "TABLE_NAME": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\n__drizzle_migrations\ncaregiver_profiles\nfamily_jobs\nreports\nreviews\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 57
+}

@@ -1,0 +1,178 @@
+{
+  "query": "DESCRIBE caregiver_profiles;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user gSkzMn65zUCxfSM.root --database CFLVKr7K9aW49hRf7iDxPE --execute DESCRIBE caregiver_profiles;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int(11)",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "userId",
+      "Type": "int(11)",
+      "Null": "NO",
+      "Key": "UNI",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "firstName",
+      "Type": "varchar(100)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "age",
+      "Type": "int(11)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "city",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "neighborhood",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "phone",
+      "Type": "varchar(20)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "emailPublic",
+      "Type": "varchar(320)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "photoUrl",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "bio",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "services",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "availability",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "experienceYears",
+      "Type": "int(11)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "experienceTypes",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "acceptsHospitalCompanion",
+      "Type": "tinyint(1)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "isAvailable",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "1",
+      "Extra": ""
+    },
+    {
+      "Field": "lat",
+      "Type": "float",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "lng",
+      "Type": "float",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "serviceRadiusKm",
+      "Type": "int(11)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "50",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint(11)\tNO\tPRI\tNULL\tauto_increment\nuserId\tint(11)\tNO\tUNI\tNULL\t\nfirstName\tvarchar(100)\tNO\t\tNULL\t\nage\tint(11)\tYES\t\tNULL\t\ncity\tvarchar(100)\tYES\t\tNULL\t\nneighborhood\tvarchar(100)\tYES\t\tNULL\t\nphone\tvarchar(20)\tYES\t\tNULL\t\nemailPublic\tvarchar(320)\tYES\t\tNULL\t\nphotoUrl\ttext\tYES\t\tNULL\t\nbio\ttext\tYES\t\tNULL\t\nservices\tjson\tYES\t\tNULL\t\navailability\tjson\tYES\t\tNULL\t\nexperienceYears\tint(11)\tYES\t\t0\t\nexperienceTypes\tjson\tYES\t\tNULL\t\nacceptsHospitalCompanion\ttinyint(1)\tYES\t\t0\t\nisAvailable\ttinyint(1)\tNO\t\t1\t\nlat\tfloat\tYES\t\tNULL\t\nlng\tfloat\tYES\t\tNULL\t\nserviceRadiusKm\tint(11)\tYES\t\t50\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\n",
+  "stderr": "",
+  "execution_time_ms": 49
+}
