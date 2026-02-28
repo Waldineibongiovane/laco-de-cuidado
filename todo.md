@@ -45,5 +45,18 @@
 - [x] Termos de uso (/termos)
 - [x] Política de privacidade (/privacidade)
 
+## Melhorias Implementadas (V2)
+- [x] Login de admin com usuário/senha (bcryptjs)
+- [x] Tabela admin_credentials no banco de dados
+- [x] Ranking de cuidadores por avaliação (getTopCaregiversByRating)
+- [x] Componente TopCaregiversRanking na Home
+- [x] Validações de entrada (email, telefone, idade, experiência, bio, nome, raio)
+- [x] Componente EmptyState para melhor UX
+- [x] Componente CaregiverCardSkeleton para loading
+- [x] Página AdminLogin (/admin-login) com setup de credenciais
+- [x] Link Admin no footer
+
 ## Testes
 - [x] Testes vitest para routers principais (23 testes passando)
+- [x] Testes para admin login (10 testes passando)
+- [x] Total: 33 testes passando

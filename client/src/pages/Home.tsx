@@ -6,6 +6,7 @@ import { Heart, Search, UserPlus, MessageCircle, Shield, Star, MapPin, ArrowRigh
 import { Link } from "wouter";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import TopCaregiversRanking from "@/components/TopCaregiversRanking";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -114,6 +115,13 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* Top Caregivers Ranking */}
+      <section className="py-16 bg-white">
+        <div className="container">
+          <TopCaregiversRanking />
         </div>
       </section>
 

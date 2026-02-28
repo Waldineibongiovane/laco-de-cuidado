@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO admin_credentials (username, passwordHash) VALUES ('admin', '$2b$10$YourHashedPasswordHere') ON DUPLICATE KEY UPDATE passwordHash=VALUES(passwordHash);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user gSkzMn65zUCxfSM.root --database CFLVKr7K9aW49hRf7iDxPE --execute INSERT INTO admin_credentials (username, passwordHash) VALUES ('admin', '$2b$10$YourHashedPasswordHere') ON DUPLICATE KEY UPDATE passwordHash=VALUES(passwordHash);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 475
+}

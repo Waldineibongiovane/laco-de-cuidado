@@ -6,6 +6,7 @@ import {
   familyJobs, InsertFamilyJob,
   reviews, InsertReview,
   reports, InsertReport,
+  adminCredentials,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -104,6 +105,25 @@ export async function listAllUsers() {
     isBlocked: users.isBlocked,
     createdAt: users.createdAt,
   }).from(users).orderBy(desc(users.createdAt));
+}
+
+export async function getAdminCredentialByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(adminCredentials).where(eq(adminCredentials.username, username)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createAdminCredential(username: string, passwordHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(adminCredentials).values({ username, passwordHash });
+}
+
+export async function updateAdminPassword(username: string, passwordHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminCredentials).set({ passwordHash }).where(eq(adminCredentials.username, username));
 }
 
 // ─── Caregiver Profiles ─────────────────────────────────────────────
@@ -335,6 +355,58 @@ export async function searchCaregiversSimple(filters: CaregiverSearchFilters) {
   // default: newest (already sorted by createdAt DESC)
 
   return results.slice(0, 100);
+}
+
+export async function getTopCaregiversByRating(limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const allProfiles = await db
+    .select({
+      id: caregiverProfiles.id,
+      userId: caregiverProfiles.userId,
+      firstName: caregiverProfiles.firstName,
+      age: caregiverProfiles.age,
+      city: caregiverProfiles.city,
+      photoUrl: caregiverProfiles.photoUrl,
+      bio: caregiverProfiles.bio,
+      isAvailable: caregiverProfiles.isAvailable,
+      createdAt: caregiverProfiles.createdAt,
+      isBlocked: users.isBlocked,
+    })
+    .from(caregiverProfiles)
+    .innerJoin(users, eq(users.id, caregiverProfiles.userId))
+    .where(eq(users.isBlocked, false));
+
+  // Fetch all reviews
+  const allReviews = await db.select({
+    caregiverUserId: reviews.caregiverUserId,
+    rating: reviews.rating,
+  }).from(reviews);
+
+  const ratingMap = new Map<number, { sum: number; count: number }>();
+  for (const r of allReviews) {
+    const existing = ratingMap.get(r.caregiverUserId) || { sum: 0, count: 0 };
+    existing.sum += r.rating;
+    existing.count += 1;
+    ratingMap.set(r.caregiverUserId, existing);
+  }
+
+  // Add ratings and filter those with at least 1 review
+  const withRatings = allProfiles
+    .map(p => {
+      const rData = ratingMap.get(p.userId);
+      return {
+        ...p,
+        avgRating: rData ? rData.sum / rData.count : 0,
+        reviewCount: rData ? rData.count : 0,
+      };
+    })
+    .filter(p => p.reviewCount > 0)
+    .sort((a, b) => b.avgRating - a.avgRating)
+    .slice(0, limit);
+
+  return withRatings;
 }
 
 export async function getCaregiverWithReviews(userId: number) {

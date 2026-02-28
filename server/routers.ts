@@ -6,13 +6,15 @@ import { z } from "zod";
 import {
   setUserType, setUserBlocked, listAllUsers, getUserById,
   getCaregiverProfileByUserId, upsertCaregiverProfile, toggleCaregiverAvailability,
-  searchCaregiversSimple, getCaregiverWithReviews,
+  searchCaregiversSimple, getCaregiverWithReviews, getTopCaregiversByRating,
   getActiveJobByFamilyId, upsertFamilyJob, deactivateFamilyJob,
   createReview, getReviewsByFamily, getReviewsByCaregiver,
   createReport, listReports, updateReportStatus,
+  getAdminCredentialByUsername, createAdminCredential, updateAdminPassword,
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
+import bcrypt from "bcryptjs";
 
 export const appRouter = router({
   system: systemRouter,
@@ -131,6 +133,12 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return searchCaregiversSimple(input);
       }),
+
+    topRanked: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).optional() }))
+      .query(async ({ input }) => {
+        return getTopCaregiversByRating(input.limit ?? 10);
+      }),
   }),
 
   job: router({
@@ -215,6 +223,45 @@ export const appRouter = router({
           details: input.details ?? null,
         });
         return { success: true };
+      }),
+  }),
+
+  adminLogin: router({
+    login: publicProcedure
+      .input(z.object({ username: z.string().min(1), password: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const credential = await getAdminCredentialByUsername(input.username);
+        if (!credential) return { success: false, message: "Credenciais invalidas" };
+        
+        const isValid = await bcrypt.compare(input.password, credential.passwordHash);
+        if (!isValid) return { success: false, message: "Credenciais invalidas" };
+        
+        return { success: true, message: "Login realizado com sucesso" };
+      }),
+
+    setupAdmin: publicProcedure
+      .input(z.object({ username: z.string().min(3), password: z.string().min(6) }))
+      .mutation(async ({ input }) => {
+        const existing = await getAdminCredentialByUsername(input.username);
+        if (existing) return { success: false, message: "Usuario admin ja existe" };
+        
+        const hash = await bcrypt.hash(input.password, 10);
+        await createAdminCredential(input.username, hash);
+        return { success: true, message: "Admin criado com sucesso" };
+      }),
+
+    changePassword: publicProcedure
+      .input(z.object({ username: z.string().min(1), oldPassword: z.string().min(1), newPassword: z.string().min(6) }))
+      .mutation(async ({ input }) => {
+        const credential = await getAdminCredentialByUsername(input.username);
+        if (!credential) return { success: false, message: "Usuario nao encontrado" };
+        
+        const isValid = await bcrypt.compare(input.oldPassword, credential.passwordHash);
+        if (!isValid) return { success: false, message: "Senha atual incorreta" };
+        
+        const newHash = await bcrypt.hash(input.newPassword, 10);
+        await updateAdminPassword(input.username, newHash);
+        return { success: true, message: "Senha alterada com sucesso" };
       }),
   }),
 

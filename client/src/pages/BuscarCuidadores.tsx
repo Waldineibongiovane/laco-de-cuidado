@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useRef, useCallback } from "react";
 import { Link } from "wouter";
+import EmptyState from "@/components/EmptyState";
+import CaregiverCardSkeleton from "@/components/CaregiverCardSkeleton";
 
 export default function BuscarCuidadores() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
@@ -316,28 +318,19 @@ export default function BuscarCuidadores() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="pt-4">
-                        <div className="flex gap-3">
-                          <div className="w-16 h-16 rounded-xl bg-muted" />
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 bg-muted rounded w-24" />
-                            <div className="h-3 bg-muted rounded w-32" />
-                            <div className="h-3 bg-muted rounded w-20" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <CaregiverCardSkeleton key={i} />
                   ))
                 ) : caregivers && caregivers.length > 0 ? (
                   caregivers.map((c: any) => (
                     <CaregiverCard key={c.id} caregiver={c} />
                   ))
                 ) : (
-                  <div className="col-span-full text-center py-16">
-                    <Search className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-                    <h3 className="font-semibold text-lg mb-1">Nenhum cuidador encontrado</h3>
-                    <p className="text-sm text-muted-foreground">Tente ajustar os filtros de busca.</p>
+                  <div className="col-span-full">
+                    <EmptyState
+                      icon={Search}
+                      title="Nenhum cuidador encontrado"
+                      description="Tente ajustar os filtros de busca ou limpe todos os filtros para ver todos os cuidadores disponveis."
+                    />
                   </div>
                 )}
               </div>
