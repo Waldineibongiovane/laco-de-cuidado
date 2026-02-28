@@ -69,16 +69,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function getUserById(id: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function setUserType(userId: number, userType: "caregiver" | "family") {
@@ -109,9 +109,9 @@ export async function listAllUsers() {
 
 export async function getAdminCredentialByUsername(username: string) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(adminCredentials).where(eq(adminCredentials.username, username)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function createAdminCredential(username: string, passwordHash: string) {
@@ -130,9 +130,9 @@ export async function updateAdminPassword(username: string, passwordHash: string
 
 export async function getCaregiverProfileByUserId(userId: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(caregiverProfiles).where(eq(caregiverProfiles.userId, userId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function upsertCaregiverProfile(data: InsertCaregiverProfile) {
@@ -451,11 +451,11 @@ export async function getCaregiverWithReviews(userId: number) {
 
 export async function getActiveJobByFamilyId(familyUserId: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return null;
   const result = await db.select().from(familyJobs)
     .where(and(eq(familyJobs.familyUserId, familyUserId), eq(familyJobs.isActive, true)))
     .limit(1);
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 export async function upsertFamilyJob(data: InsertFamilyJob) {
