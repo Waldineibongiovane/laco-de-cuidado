@@ -164,7 +164,7 @@ function CaregiverAccount() {
     }
   }, [profile]);
 
-  const upsertProfile = trpc.caregiver.updateProfile.useMutation({
+  const upsertProfile = trpc.caregiver.upsertProfile.useMutation({
     onSuccess: () => {
       toast.success("Perfil salvo com sucesso!");
       utils.caregiver.myProfile.invalidate();
@@ -181,7 +181,7 @@ function CaregiverAccount() {
 
   const uploadPhoto = trpc.caregiver.uploadPhoto.useMutation({
     onSuccess: (data) => {
-      setPhotoUrl(data.photoUrl);
+      setPhotoUrl(data.url);
       toast.success("Foto enviada!");
     },
     onError: () => toast.error("Erro ao enviar foto."),
@@ -197,7 +197,7 @@ function CaregiverAccount() {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = (reader.result as string).split(",")[1];
-      uploadPhoto.mutate({ photoBase64: base64, fileName: file.name });
+      uploadPhoto.mutate({ base64, mimeType: file.type });
     };
     reader.readAsDataURL(file);
   };
@@ -227,6 +227,7 @@ function CaregiverAccount() {
       lat,
       lng,
       serviceRadiusKm: serviceRadius,
+      photoUrl: photoUrl || undefined,
     });
   };
 
@@ -258,7 +259,7 @@ function CaregiverAccount() {
                 </span>
                 <Switch
                   checked={profile.isAvailable}
-                  onCheckedChange={() => toggleAvail.mutate({ isAvailable: !profile.isAvailable })}
+                  onCheckedChange={() => toggleAvail.mutate()}
                 />
               </div>
             )}
@@ -443,7 +444,7 @@ function CaregiverAccount() {
 function FamilyAccount() {
   const { user } = useAuth();
   const utils = trpc.useUtils();
-  const { data: job, isLoading } = trpc.family.myJob.useQuery();
+  const { data: job, isLoading } = trpc.job.myJob.useQuery();
   const { data: myReviews } = trpc.review.myReviews.useQuery();
 
   const [elderAge, setElderAge] = useState<number | undefined>();
@@ -470,18 +471,18 @@ function FamilyAccount() {
     }
   }, [job]);
 
-  const upsertJob = trpc.family.updateJob.useMutation({
+  const upsertJob = trpc.job.upsert.useMutation({
     onSuccess: () => {
       toast.success("Vaga salva com sucesso!");
-      utils.family.myJob.invalidate();
+      utils.job.myJob.invalidate();
     },
     onError: () => toast.error("Erro ao salvar vaga."),
   });
 
-  const deactivateJob = trpc.family.deactivateJob.useMutation({
+  const deactivateJob = trpc.job.deactivate.useMutation({
     onSuccess: () => {
       toast.success("Vaga desativada.");
-      utils.family.myJob.invalidate();
+      utils.job.myJob.invalidate();
     },
     onError: () => toast.error("Erro ao desativar vaga."),
   });
@@ -492,14 +493,15 @@ function FamilyAccount() {
 
   const handleSave = () => {
     upsertJob.mutate({
-      title: `Vaga para cuidador - Idoso ${elderAge || ""} anos`,
-      description: `Dependência: ${dependencyLevel}. Condições: ${conditions}. Tarefas: ${tasks.join(", ")}. Horário: ${schedule}`,
-      requiredServices: tasks,
-      requiredAvailability: schedule ? [schedule] : [],
-      city: city || "",
+      elderAge,
+      dependencyLevel: dependencyLevel as any || undefined,
+      conditions: conditions || undefined,
+      tasks,
+      schedule: schedule || undefined,
+      city: city || undefined,
       neighborhood: neighborhood || undefined,
-      lat: lat || 0,
-      lng: lng || 0,
+      lat,
+      lng,
     });
   };
 
