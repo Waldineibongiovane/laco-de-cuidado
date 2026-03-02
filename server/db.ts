@@ -7,6 +7,7 @@ import {
   reviews, InsertReview,
   reports, InsertReport,
   adminCredentials,
+  userCredentials, InsertUserCredential,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -536,4 +537,74 @@ export function haversineDistance(lat1: number, lng1: number, lat2: number, lng2
 
 function toRad(deg: number): number {
   return (deg * Math.PI) / 180;
+}
+
+// ─── Manual Signup/Login ────────────────────────────────────────────
+
+export async function signupUser(data: {
+  name: string;
+  email: string;
+  passwordHash: string;
+  userType: "caregiver" | "family";
+}) {
+  const db = await getDb();
+  if (!db) return null;
+
+  try {
+    // Check if email already exists
+    const existing = await db.select().from(userCredentials).where(eq(userCredentials.email, data.email)).limit(1);
+    if (existing.length > 0) {
+      throw new Error("Email já cadastrado");
+    }
+
+    // Create user
+    const openId = `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const result = await db.insert(users).values({
+      openId,
+      name: data.name,
+      email: data.email,
+      userType: data.userType,
+      loginMethod: "manual",
+      role: "user",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+    });
+
+    // Get the inserted user ID
+    const newUser = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+    if (!newUser[0]) throw new Error("Erro ao criar usuário");
+
+    // Create credentials
+    await db.insert(userCredentials).values({
+      userId: newUser[0].id,
+      email: data.email,
+      passwordHash: data.passwordHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    return newUser[0];
+  } catch (error) {
+    console.error("[Database] Signup error:", error);
+    throw error;
+  }
+}
+
+export async function getUserCredentialByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(userCredentials).where(eq(userCredentials.email, email)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getUserByCredentialId(credentialId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const credential = await db.select().from(userCredentials).where(eq(userCredentials.id, credentialId)).limit(1);
+  if (!credential[0]) return null;
+
+  return getUserById(credential[0].userId);
 }

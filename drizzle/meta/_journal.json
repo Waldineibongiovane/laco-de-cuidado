@@ -15,6 +15,13 @@
       "when": 1772241312208,
       "tag": "0001_petite_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772451794762,
+      "tag": "0002_cute_lionheart",
+      "breakpoints": true
     }
   ]
 }

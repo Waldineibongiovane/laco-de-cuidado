@@ -48,15 +48,12 @@ export default function Home() {
                   </Button>
                 </Link>
               ) : (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="rounded-full px-8 text-base gap-2"
-                  onClick={() => window.location.href = getLoginUrl()}
-                >
-                  <UserPlus className="w-5 h-5" />
-                  Sou Cuidador
-                </Button>
+                <Link href="/signup">
+                  <Button variant="outline" size="lg" className="rounded-full px-8 text-base gap-2 w-full sm:w-auto">
+                    <UserPlus className="w-5 h-5" />
+                    Cadastre-se
+                  </Button>
+                </Link>
               )}
             </div>
           </div>

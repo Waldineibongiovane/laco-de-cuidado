@@ -11,6 +11,8 @@ import PerfilCuidador from "./pages/PerfilCuidador";
 import MinhaConta from "./pages/MinhaConta";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 
@@ -21,6 +23,8 @@ function Router() {
       <Route path="/buscar" component={BuscarCuidadores} />
       <Route path="/cuidador/:id" component={PerfilCuidador} />
       <Route path="/minha-conta" component={MinhaConta} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/login" component={Login} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin" component={Admin} />
       <Route path="/termos" component={Termos} />

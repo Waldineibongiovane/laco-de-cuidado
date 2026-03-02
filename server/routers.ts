@@ -11,6 +11,7 @@ import {
   createReview, getReviewsByFamily, getReviewsByCaregiver,
   createReport, listReports, updateReportStatus,
   getAdminCredentialByUsername, createAdminCredential, updateAdminPassword,
+  signupUser, getUserCredentialByEmail, getUserByCredentialId,
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
@@ -26,6 +27,45 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    signup: publicProcedure
+      .input(z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        password: z.string().min(6),
+        userType: z.enum(["caregiver", "family"]),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const hash = await bcrypt.hash(input.password, 10);
+          const user = await signupUser({
+            name: input.name,
+            email: input.email,
+            passwordHash: hash,
+            userType: input.userType,
+          });
+          return { success: true, message: "Cadastro realizado com sucesso!", userId: user?.id };
+        } catch (error: any) {
+          return { success: false, message: error.message || "Erro ao cadastrar" };
+        }
+      }),
+    login: publicProcedure
+      .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        try {
+          const credential = await getUserCredentialByEmail(input.email);
+          if (!credential) return { success: false, message: "Email ou senha inválidos" };
+          
+          const isValid = await bcrypt.compare(input.password, credential.passwordHash);
+          if (!isValid) return { success: false, message: "Email ou senha inválidos" };
+          
+          const user = await getUserByCredentialId(credential.id);
+          if (!user) return { success: false, message: "Usuário não encontrado" };
+          
+          return { success: true, message: "Login realizado com sucesso!", userId: user.id };
+        } catch (error) {
+          return { success: false, message: "Erro ao fazer login" };
+        }
+      }),
   }),
 
   user: router({
