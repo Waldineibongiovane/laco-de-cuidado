@@ -11,6 +11,7 @@ import {
   createReview, getReviewsByFamily, getReviewsByCaregiver,
   createReport, listReports, updateReportStatus,
   getAdminCredentialByUsername, createAdminCredential, updateAdminPassword,
+  createUserWithRole, updateUserRole, updateUserType, deleteUser, getAllUsersWithProfiles, deleteReport, deleteCaregiverProfile,
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
@@ -49,71 +50,55 @@ export const appRouter = router({
       return getCaregiverProfileByUserId(ctx.user.id);
     }),
 
-    getProfile: publicProcedure
-      .input(z.object({ userId: z.number() }))
-      .query(async ({ input }) => {
-        return getCaregiverWithReviews(input.userId);
-      }),
-
-    upsertProfile: protectedProcedure
+    updateProfile: protectedProcedure
       .input(z.object({
-        firstName: z.string().min(1).max(100),
+        firstName: z.string().min(2),
         age: z.number().min(18).max(120).optional(),
-        city: z.string().max(100).optional(),
-        neighborhood: z.string().max(100).optional(),
-        phone: z.string().max(20).optional(),
-        emailPublic: z.string().email().max(320).optional(),
+        city: z.string().optional(),
+        neighborhood: z.string().optional(),
+        phone: z.string().optional(),
+        emailPublic: z.string().email().optional(),
         bio: z.string().max(2000).optional(),
         services: z.array(z.string()).optional(),
         availability: z.array(z.string()).optional(),
-        experienceYears: z.number().min(0).max(50).optional(),
+        experienceYears: z.number().min(0).optional(),
         experienceTypes: z.array(z.string()).optional(),
         acceptsHospitalCompanion: z.boolean().optional(),
+        isAvailable: z.boolean().optional(),
         lat: z.number().optional(),
         lng: z.number().optional(),
         serviceRadiusKm: z.number().min(1).max(100).optional(),
-        photoUrl: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        await setUserType(ctx.user.id, "caregiver");
         await upsertCaregiverProfile({
           userId: ctx.user.id,
-          firstName: input.firstName,
-          age: input.age ?? null,
-          city: input.city ?? null,
-          neighborhood: input.neighborhood ?? null,
-          phone: input.phone ?? null,
-          emailPublic: input.emailPublic ?? null,
-          bio: input.bio ?? null,
-          services: input.services ?? [],
-          availability: input.availability ?? [],
-          experienceYears: input.experienceYears ?? 0,
-          experienceTypes: input.experienceTypes ?? [],
-          acceptsHospitalCompanion: input.acceptsHospitalCompanion ?? false,
-          lat: input.lat ?? null,
-          lng: input.lng ?? null,
-          serviceRadiusKm: input.serviceRadiusKm ?? 50,
-          photoUrl: input.photoUrl ?? null,
+          ...input,
         });
         return { success: true };
       }),
 
-    toggleAvailability: protectedProcedure.mutation(async ({ ctx }) => {
-      await toggleCaregiverAvailability(ctx.user.id);
-      return { success: true };
-    }),
-
     uploadPhoto: protectedProcedure
-      .input(z.object({
-        base64: z.string(),
-        mimeType: z.string(),
-      }))
+      .input(z.object({ photoBase64: z.string(), fileName: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        const ext = input.mimeType.split("/")[1] || "jpg";
-        const key = `caregiver-photos/${ctx.user.id}-${nanoid(8)}.${ext}`;
-        const buffer = Buffer.from(input.base64, "base64");
-        const { url } = await storagePut(key, buffer, input.mimeType);
-        return { url };
+        const buffer = Buffer.from(input.photoBase64, "base64");
+        const fileKey = `caregiver-photos/${ctx.user.id}-${nanoid()}.jpg`;
+        const { url } = await storagePut(fileKey, buffer, "image/jpeg");
+        
+        const profile = await getCaregiverProfileByUserId(ctx.user.id);
+        await upsertCaregiverProfile({
+          userId: ctx.user.id,
+          firstName: profile?.firstName || "Cuidador",
+          photoUrl: url,
+        });
+        
+        return { success: true, photoUrl: url };
+      }),
+
+    toggleAvailability: protectedProcedure
+      .input(z.object({ isAvailable: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        await toggleCaregiverAvailability(ctx.user.id);
+        return { success: true };
       }),
 
     search: publicProcedure
@@ -128,55 +113,53 @@ export const appRouter = router({
         experienceTypes: z.array(z.string()).optional(),
         acceptsHospitalCompanion: z.boolean().optional(),
         minRating: z.number().optional(),
-        sortBy: z.enum(["distance", "rating", "newest", "recommended"]).optional(),
+        sortBy: z.enum(["newest", "distance", "rating", "recommended"]).optional(),
       }))
       .query(async ({ input }) => {
         return searchCaregiversSimple(input);
       }),
 
-    topRanked: publicProcedure
-      .input(z.object({ limit: z.number().min(1).max(50).optional() }))
+    getProfile: publicProcedure
+      .input(z.object({ userId: z.number() }))
       .query(async ({ input }) => {
-        return getTopCaregiversByRating(input.limit ?? 10);
+        return getCaregiverWithReviews(input.userId);
+      }),
+
+    topRanked: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).default(6) }))
+      .query(async ({ input }) => {
+        return getTopCaregiversByRating(input.limit);
       }),
   }),
 
-  job: router({
+  family: router({
     myJob: protectedProcedure.query(async ({ ctx }) => {
       return getActiveJobByFamilyId(ctx.user.id);
     }),
 
-    upsert: protectedProcedure
+    updateJob: protectedProcedure
       .input(z.object({
-        elderAge: z.number().min(1).max(150).optional(),
-        dependencyLevel: z.enum(["leve", "moderado", "alto"]).optional(),
-        conditions: z.string().max(2000).optional(),
-        tasks: z.array(z.string()).optional(),
-        schedule: z.string().max(500).optional(),
-        city: z.string().max(100).optional(),
-        neighborhood: z.string().max(100).optional(),
-        lat: z.number().optional(),
-        lng: z.number().optional(),
+        title: z.string().min(5),
+        description: z.string().min(20),
+        requiredServices: z.array(z.string()),
+        requiredAvailability: z.array(z.string()),
+        minExperience: z.number().min(0).optional(),
+        acceptsCaregiverTypes: z.array(z.string()).optional(),
+        city: z.string(),
+        neighborhood: z.string().optional(),
+        lat: z.number(),
+        lng: z.number(),
+        isActive: z.boolean().default(true),
       }))
       .mutation(async ({ ctx, input }) => {
-        await setUserType(ctx.user.id, "family");
         await upsertFamilyJob({
           familyUserId: ctx.user.id,
-          elderAge: input.elderAge ?? null,
-          dependencyLevel: input.dependencyLevel ?? null,
-          conditions: input.conditions ?? null,
-          tasks: input.tasks ?? [],
-          schedule: input.schedule ?? null,
-          city: input.city ?? null,
-          neighborhood: input.neighborhood ?? null,
-          lat: input.lat ?? null,
-          lng: input.lng ?? null,
-          isActive: true,
+          ...input,
         });
         return { success: true };
       }),
 
-    deactivate: protectedProcedure
+    deactivateJob: protectedProcedure
       .input(z.object({ jobId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         await deactivateFamilyJob(input.jobId, ctx.user.id);
@@ -194,8 +177,8 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         await createReview({
-          caregiverUserId: input.caregiverUserId,
           familyUserId: ctx.user.id,
+          caregiverUserId: input.caregiverUserId,
           rating: input.rating,
           comment: input.comment ?? null,
           hiredCaregiver: input.hiredCaregiver,
@@ -267,13 +250,46 @@ export const appRouter = router({
 
   admin: router({
     listUsers: adminProcedure.query(async () => {
-      return listAllUsers();
+      return getAllUsersWithProfiles();
     }),
+
+    createUser: adminProcedure
+      .input(z.object({
+        name: z.string().min(2),
+        email: z.string().email(),
+        userType: z.enum(["caregiver", "family"]),
+        role: z.enum(["user", "admin"]),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await createUserWithRole(input);
+        return { success: !!result, message: result ? "Usuario criado com sucesso" : "Erro ao criar usuario" };
+      }),
+
+    updateUserRole: adminProcedure
+      .input(z.object({ userId: z.number(), role: z.enum(["user", "admin"]) }))
+      .mutation(async ({ input }) => {
+        await updateUserRole(input.userId, input.role);
+        return { success: true };
+      }),
+
+    updateUserType: adminProcedure
+      .input(z.object({ userId: z.number(), userType: z.enum(["caregiver", "family"]) }))
+      .mutation(async ({ input }) => {
+        await updateUserType(input.userId, input.userType);
+        return { success: true };
+      }),
 
     toggleBlock: adminProcedure
       .input(z.object({ userId: z.number(), isBlocked: z.boolean() }))
       .mutation(async ({ input }) => {
         await setUserBlocked(input.userId, input.isBlocked);
+        return { success: true };
+      }),
+
+    deleteUser: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteUser(input.userId);
         return { success: true };
       }),
 
@@ -288,6 +304,20 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await updateReportStatus(input.reportId, input.status);
+        return { success: true };
+      }),
+
+    deleteReport: adminProcedure
+      .input(z.object({ reportId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteReport(input.reportId);
+        return { success: true };
+      }),
+
+    deleteCaregiverProfile: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteCaregiverProfile(input.userId);
         return { success: true };
       }),
   }),

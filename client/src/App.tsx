@@ -11,6 +11,7 @@ import PerfilCuidador from "./pages/PerfilCuidador";
 import MinhaConta from "./pages/MinhaConta";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import AdminPanel from "./pages/AdminPanel";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/minha-conta" component={MinhaConta} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin-panel" component={AdminPanel} />
       <Route path="/termos" component={Termos} />
       <Route path="/privacidade" component={Privacidade} />
       <Route path="/404" component={NotFound} />
